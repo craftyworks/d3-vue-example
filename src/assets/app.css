@@ -1,18 +1,51 @@
-.tentative {
-    opacity: .5;
+body, html {
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
 }
 
-.active {
-    stroke: black;
-    stroke-width: 4px;
-    stroke-dasharray: 1;
+.rank-a, .rank-b, .rank-c, .rank-d, .rank-e, .rank-f, rank-g {
+    stroke: #262931;
+    stroke-width: 2px;
 }
 
-circle {
-    fill: red;
+.showbox-title-text tspan{
+    fill: white;
+    font-weight: 700;
+    text-anchor: middle;
+    dominant-baseline: middle;
 }
 
-rect {
-    fill: darkgray;
+.shadow {
+    -webkit-filter: drop-shadow( 3px 3px 2px rgba(0, 0, 0, .7));
+    filter: drop-shadow( 3px 3px 2px rgba(0, 0, 0, .7));
 }
 
+.rank-g {
+    fill: #f63538
+}
+
+.rank-f {
+    fill: #bf4045
+}
+
+.rank-e {
+    fill: #8b444e
+}
+
+.rank-d {
+    fill: #414554
+}
+
+.rank-c {
+    fill: #35764e
+}
+
+.rank-b {
+    fill: #2f9e4f
+}
+
+.rank-a {
+    fill: #30cc5a
+}
