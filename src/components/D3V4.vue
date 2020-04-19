@@ -16,7 +16,7 @@
               filter="url(#shadow)"
               :style="{fontSize:item.fontSize}">
           <tspan>{{item.name}}</tspan>
-          <tspan :x="item.width/2" :dy="item.fontSize + 5">{{item.change >= 0 ? '+' : '-'}} {{item.change}}%</tspan>
+          <tspan :x="item.width/2" :dy="item.fontSize + 5">{{item.change >= 0 ? '+' : ''}} {{item.change}}%</tspan>
         </text>
       </g>
     </g>
@@ -50,23 +50,16 @@ export default {
       return textWidth < item.width && textHeight < item.height
     },
     async fetchData () {
-      await this.d3.csv('kospi202.csv', function (d) {
-        return {
-          code: d.code,
-          name: d.name,
-          price: +d.price,
-          change: +d.change,
-          value: +d.cap,
-          sector: d.sector,
-          rank: `rank-${d.rank.toLowerCase()}`
-        }
-      }).then(data => {
-        this.kospi200 = this.d3.nest().key(d => d.sector).entries(data)
-        this.kospi200.forEach(d => {
-          d.value = d.values.map(el => el.value).reduce((a, b) => a + b)
+      // await this.$http.get('http://localhost:10080/api/index/kospi200/treeModel')
+      await this.$http.get('https://mondrianlab.com/api/index/kospi200/treeModel')
+        .then(result => {
+          console.log('axios result', result.data)
+          this.kospi200 = this.d3.nest().key(d => d.sector).entries(result.data)
+          this.kospi200.forEach(d => {
+            d.value = d.values.map(el => el.value).reduce((a, b) => a + b)
+          })
+          this.kospi200.sort((a, b) => b.value - a.value)
         })
-        this.kospi200.sort((a, b) => b.value - a.value)
-      })
     }
   },
   async mounted () {
