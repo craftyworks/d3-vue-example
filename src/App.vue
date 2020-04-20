@@ -16,6 +16,7 @@ export default {
 
 <style>
   @import "assets/app.css";
+  @import "assets/modal.css";
   @import url('https://fonts.googleapis.com/css?family=Montserrat:400,700');
   @import url('https://fonts.googleapis.com/css?family=Lato:400,700,900');
   #app {
