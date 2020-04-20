@@ -8,6 +8,12 @@ body, html {
 .rank-a, .rank-b, .rank-c, .rank-d, .rank-e, .rank-f, .rank-g {
     stroke: #262931;
     stroke-width: 1px;
+    transition: 0.3s;
+}
+
+.rank-a:hover, .rank-b:hover, .rank-c:hover, .rank-d:hover, .rank-e:hover, .rank-f:hover, .rank-g:hover {
+    opacity: 0.9;
+    fill: #ec008c;
 }
 
 .showbox-title-text tspan{
@@ -15,6 +21,11 @@ body, html {
     font-weight: 700;
     text-anchor: middle;
     dominant-baseline: middle;
+    transition: 0.3s;
+}
+
+.showbox-title-text tspan:hover {
+    font-size: 120%
 }
 
 .shadow {
