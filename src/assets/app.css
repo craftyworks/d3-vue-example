@@ -5,9 +5,9 @@ body, html {
     margin: 0;
 }
 
-.rank-a, .rank-b, .rank-c, .rank-d, .rank-e, .rank-f, rank-g {
+.rank-a, .rank-b, .rank-c, .rank-d, .rank-e, .rank-f, .rank-g {
     stroke: #262931;
-    stroke-width: 2px;
+    stroke-width: 1px;
 }
 
 .showbox-title-text tspan{
