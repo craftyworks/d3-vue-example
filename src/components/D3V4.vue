@@ -1,26 +1,40 @@
 <template>
-  <svg>
-    <defs>
-      <filter id="shadow">
-        <feDropShadow dx="0.2" dy="0.4" stdDeviation="0.2"/>
-      </filter>
-    </defs>
-    <g v-for="sect in sectorData" :key="sect.key" :transform="`translate(${sect.x0}, ${sect.y0})`">
-      <rect x="0" y="0" :width="sect.width" :height="sect.height" class="sector-box"></rect>
-      <rect x="0" y="0" :width="sect.width" height="20px" class="sector-box-title" :class="[sect.rank]"></rect>
-      <text :x="sect.width/2" :y="0" dy="4" class="sector-box-title-text">{{sect.key}}</text>
-
-      <g v-for="item in sect.children" :key="item.code" :transform="`translate(${item.x0}, ${item.y0})`">
-        <rect x="0" y="0" :width="item.width" :height="item.height" :class="[item.rank]"></rect>
-        <text v-if="showText(item)" :x="item.width/2" :y="(item.height - item.fontSize) / 2" class="showbox-title-text"
-              filter="url(#shadow)"
-              :style="{fontSize:item.fontSize}">
-          <tspan>{{item.name}}</tspan>
-          <tspan :x="item.width/2" :dy="item.fontSize + 5">{{item.change >= 0 ? '+' : ''}} {{item.change}}%</tspan>
-        </text>
+  <div style="width: 100%; height: 100%">
+    <svg>
+      <defs>
+        <filter id="shadow">
+          <feDropShadow dx="0.2" dy="0.4" stdDeviation="0.2"/>
+        </filter>
+      </defs>
+      <g v-for="sect in sectorData" :key="sect.key" :transform="`translate(${sect.x0}, ${sect.y0})`">
+        <rect x="1" y="1" :width="sect.width" :height="sect.height" class="sector-box"></rect>
+        <template v-if="true">
+          <g v-for="item in sect.children" :key="item.code" :transform="`translate(${item.x0}, ${item.y0})`">
+            <rect x="0" y="0" :width="item.width" :height="item.height" class="stock-box" :class="[item.rank]"></rect>
+            <text v-if="showText(item)" :x="item.width/2" :y="(item.height - item.fontSize) / 2"
+                  class="showbox-title-text"
+                  filter="url(#shadow)"
+                  :style="{fontSize:item.fontSize}">
+              <tspan>{{item.name}}</tspan>
+              <tspan :x="item.width/2" :dy="item.fontSize + 5">{{item.change >= 0 ? '+' : ''}} {{item.change}}%</tspan>
+            </text>
+          </g>
+        </template>
+        <polygon :points="`1,1 ${sect.width+1},1 ${sect.width+1},20 20,20 15,25 10,20, 1,20`" class="sector-box-title"
+                 :class="[sect.rank]"></polygon>
+        <line :x1="sect.width" :y1="1" :x2="sect.width" y2="20" class="sector-box-title-right"></line>
+        <text :x="sect.width/2" :y="0" dy="5" filter="url(#shadow)" class="sector-box-title-text">{{sect.key}}</text>
       </g>
-    </g>
-  </svg>
+    </svg>
+    <!-- The Modal -->
+    <div id="myModal" class="modal">
+      <!-- Modal content -->
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <p>Some text in the Modal..</p>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -40,7 +54,12 @@ export default {
   computed: {
     container () {
       const margin = 10 * 2
-      return { x0: 0, y0: 0, x1: this.screenWidth - margin, y1: this.screenHeight - margin }
+      return {
+        x0: 0,
+        y0: 0,
+        x1: this.screenWidth - margin,
+        y1: this.screenHeight - margin
+      }
     }
   },
   methods: {
@@ -60,6 +79,9 @@ export default {
           })
           this.kospi200.sort((a, b) => b.value - a.value)
         })
+    },
+    onClickStock (e) {
+      console.log('over', this, e)
     }
   },
   async mounted () {
@@ -73,7 +95,12 @@ export default {
     this.sectorData.forEach(d => {
       d.width = d.x1 - d.x0
       d.height = d.y1 - d.y0
-      d.children = squarify(d.values, { x0: 1, y0: 20, x1: d.x1 - d.x0, y1: d.y1 - d.y0 })
+      d.children = squarify(d.values, {
+        x0: 1,
+        y0: 20,
+        x1: d.x1 - d.x0,
+        y1: d.y1 - d.y0
+      })
       d.rank = d.children[0].rank
       delete d.values
     })
@@ -93,6 +120,10 @@ export default {
     })
 
     console.log(this.sectorData)
+    setTimeout(() => {
+      document.querySelectorAll('rect.stock-box')
+        .forEach(el => el.addEventListener('mouseover', this.onClickStock))
+    }, 1000)
   }
 }
 </script>
@@ -105,7 +136,7 @@ export default {
   }
 
   .sector-box {
-    fill: none;
+    fill: transparent;
     stroke: #262931;
     stroke-width: 2px;
   }
@@ -113,6 +144,11 @@ export default {
   .sector-box-title {
     stroke: #262931;
     stroke-width: 2px;
+  }
+
+  .sector-box-title-right {
+    stroke: #262931;
+    stroke-width: 1px;
   }
 
   .sector-box-title-text {
