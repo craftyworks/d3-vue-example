@@ -1,9 +1,9 @@
 <template>
-  <div style="width: 100%; height: 100%">
-    <svg>
+  <div style="width: 100%; height: 100%; display: flex; flex-direction: column">
+    <svg style="flex: 1">
       <defs>
         <filter id="shadow">
-          <feDropShadow dx="0.2" dy="0.4" stdDeviation="0.2"/>
+          <feDropShadow dx="0.2" dy="0.4" stdDeviation="0.5"/>
         </filter>
       </defs>
       <g v-for="sect in sectorData" :key="sect.key" :transform="`translate(${sect.x0}, ${sect.y0})`">
@@ -11,11 +11,13 @@
         <template v-if="true">
           <g v-for="item in sect.children" :key="item.code" :transform="`translate(${item.x0}, ${item.y0})`">
             <rect x="0" y="0" :width="item.width" :height="item.height" class="stock-box" :class="[item.rank]"></rect>
-            <text v-if="showText(item)" :x="item.width/2" :y="(item.height - item.fontSize) / 2"
+            <text :x="item.width/2" :y="item.height/2 - (item.showChange ? item.fontSize/2 : 0)"
                   class="stock-title-text"
                   :style="{fontSize:item.fontSize+'px'}">
-              <tspan>{{item.name}}</tspan>
-              <tspan :x="item.width/2" :dy="item.fontSize + 5">{{item.change >= 0 ? '+' : ''}} {{item.change}}%</tspan>
+              <tspan v-if="item.showName">{{item.name}}</tspan>
+              <tspan v-if="item.showChange" :x="item.width/2" :dy="item.fontSize + 5">{{item.change >= 0 ? '+' : ''}}
+                {{item.change}}%
+              </tspan>
             </text>
           </g>
         </template>
@@ -25,6 +27,32 @@
         <text :x="sect.width/2" :y="14" dy="0" class="sector-box-title-text">{{sect.key}}</text>
       </g>
     </svg>
+    <div style="display: flex; margin: 0px 10px 10px">
+      <div style="flex: auto"></div>
+      <div class="legend-div" style="display: flex; flex: none; margin-left: auto;">
+        <div class="step" style="background: rgb(246, 53, 56); ">
+          -3%
+        </div>
+        <div class="step" style="background: rgb(191, 64, 69); ">
+          -2%
+        </div>
+        <div class="step" style="background: rgb(139, 68, 78); ">
+          -1%
+        </div>
+        <div class="step" style="background: rgb(65, 69, 84); ">
+          0%
+        </div>
+        <div class="step" style="background: rgb(53, 118, 78); ">
+          +1%
+        </div>
+        <div class="step" style="background: rgb(47, 158, 79); ">
+          +2%
+        </div>
+        <div class="step" style="background: rgb(48, 204, 90); ">
+          +3%
+        </div>
+      </div>
+    </div>
     <!-- The Modal -->
     <div id="myModal" class="modal">
       <!-- Modal content -->
@@ -62,8 +90,13 @@ export default {
     }
   },
   methods: {
-    showText (item) {
-      const textWidth = item.name.length * item.fontSize
+    showName (item) {
+      const textWidth = item.name.length * item.fontSize + 5
+      const textHeight = item.fontSize * 2 + 10
+      return textWidth < item.width && textHeight < item.height
+    },
+    showChange (item) {
+      const textWidth = (item.change + '').length * item.fontSize + 5
       const textHeight = item.fontSize * 2 + 10
       return textWidth < item.width && textHeight < item.height
     },
@@ -112,10 +145,18 @@ export default {
       ])
       .range([8, 40])
 
+    const vm = this
     allChild.forEach(function (e) {
       e.width = e.x1 - e.x0
       e.height = e.y1 - e.y0
       e.fontSize = fontScale(e.width + e.height)
+      e.showName = vm.showName(e)
+      e.showChange = e.showName && vm.showChange(e)
+      while (e.fontSize > 8 && !e.showName) {
+        e.fontSize *= 0.9
+        e.showName = vm.showName(e)
+        e.showChange = e.showName && vm.showChange(e)
+      }
     })
 
     console.log(this.sectorData)
@@ -131,10 +172,10 @@ export default {
   svg {
     width: 100%;
     height: 100%;
-    margin: 10px;
+    margin: 10px 10px 0px 10px;
   }
 
-  .stock-title-text tspan{
+  .stock-title-text tspan {
     fill: white;
     font-weight: 700;
     text-anchor: middle;
@@ -175,5 +216,16 @@ export default {
     .stock-title-text, .sector-box-title-text {
       filter: url(#shadow);
     }
+  }
+
+  div.step {
+    font-size: 11px;
+    line-height: 24px;
+    font-weight: 400;
+    color: white;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, .25);
+    width: 40px;
+    padding-left: 6px;
+    padding-right: 6px;
   }
 </style>
