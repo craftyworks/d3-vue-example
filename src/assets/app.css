@@ -22,29 +22,29 @@ body, html {
 }
 
 .rank-g {
-    fill: #f63538
+    fill: rgb(246, 53, 56);
 }
 
 .rank-f {
-    fill: #bf4045
+    fill: rgb(191, 64, 69);
 }
 
 .rank-e {
-    fill: #8b444e
+    fill: rgb(139, 68, 78);
 }
 
 .rank-d {
-    fill: #414554
+    fill: rgb(65, 69, 84);
 }
 
 .rank-c {
-    fill: #35764e
+    fill: rgb(53, 118, 78);
 }
 
 .rank-b {
-    fill: #2f9e4f
+    fill: rgb(47, 158, 79);
 }
 
 .rank-a {
-    fill: #30cc5a
+    fill: rgb(48, 204, 90);
 }

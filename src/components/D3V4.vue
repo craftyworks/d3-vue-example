@@ -54,7 +54,7 @@
       </div>
     </div>
     <!-- The Modal -->
-    <div id="myModal" class="modal">
+    <div v-show="showModal" id="myModal" class="modal">
       <!-- Modal content -->
       <div class="modal-content">
         <span class="close">&times;</span>
@@ -75,7 +75,8 @@ export default {
       sectorData: [],
       chartData: [],
       screenWidth: 0,
-      screenHeight: 0
+      screenHeight: 0,
+      showModal: false
     }
   },
   computed: {
@@ -112,8 +113,11 @@ export default {
           this.kospi200.sort((a, b) => b.value - a.value)
         })
     },
-    onClickStock (e) {
-      console.log('over', this, e)
+    onMouseOver (e) {
+      this.showModal = true
+    },
+    onMouseOut (e) {
+      this.showModal = false
     }
   },
   async mounted () {
@@ -162,7 +166,10 @@ export default {
     console.log(this.sectorData)
     setTimeout(() => {
       document.querySelectorAll('rect.stock-box')
-        .forEach(el => el.addEventListener('mouseover', this.onClickStock))
+        .forEach(el => {
+          // el.addEventListener('mouseover', this.onMouseOver)
+          // el.addEventListener('mouseout', this.onMouseOut)
+        })
     }, 1000)
   }
 }
