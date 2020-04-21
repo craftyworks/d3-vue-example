@@ -12,9 +12,8 @@
           <g v-for="item in sect.children" :key="item.code" :transform="`translate(${item.x0}, ${item.y0})`">
             <rect x="0" y="0" :width="item.width" :height="item.height" class="stock-box" :class="[item.rank]"></rect>
             <text v-if="showText(item)" :x="item.width/2" :y="(item.height - item.fontSize) / 2"
-                  class="showbox-title-text"
-                  filter="url(#shadow)"
-                  :style="{fontSize:item.fontSize}">
+                  class="stock-title-text"
+                  :style="{fontSize:item.fontSize+'px'}">
               <tspan>{{item.name}}</tspan>
               <tspan :x="item.width/2" :dy="item.fontSize + 5">{{item.change >= 0 ? '+' : ''}} {{item.change}}%</tspan>
             </text>
@@ -23,7 +22,7 @@
         <polygon :points="`1,1 ${sect.width+1},1 ${sect.width+1},20 20,20 15,25 10,20, 1,20`" class="sector-box-title"
                  :class="[sect.rank]"></polygon>
         <line :x1="sect.width" :y1="1" :x2="sect.width" y2="20" class="sector-box-title-right"></line>
-        <text :x="sect.width/2" :y="0" dy="5" filter="url(#shadow)" class="sector-box-title-text">{{sect.key}}</text>
+        <text :x="sect.width/2" :y="14" dy="0" class="sector-box-title-text">{{sect.key}}</text>
       </g>
     </svg>
     <!-- The Modal -->
@@ -135,6 +134,18 @@ export default {
     margin: 10px;
   }
 
+  .stock-title-text tspan{
+    fill: white;
+    font-weight: 700;
+    text-anchor: middle;
+    dominant-baseline: middle;
+    transition: 0.3s;
+  }
+
+  .stock-title-text tspan:hover {
+    font-size: 120%
+  }
+
   .sector-box {
     fill: transparent;
     stroke: #262931;
@@ -154,8 +165,15 @@ export default {
   .sector-box-title-text {
     fill: white;
     font-weight: 700;
-    font-size: small;
+    font-size: 12px;
     text-anchor: middle;
-    dominant-baseline: hanging;
+    /*dominant-baseline: hanging;*/
+  }
+
+  /* Non IE style */
+  @supports not (-ms-high-contrast: none) {
+    .stock-title-text, .sector-box-title-text {
+      filter: url(#shadow);
+    }
   }
 </style>
