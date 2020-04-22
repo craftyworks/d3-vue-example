@@ -8,14 +8,16 @@
     <g v-for="sect in sectorData" :key="sect.key" :transform="`translate(${sect.x0}, ${sect.y0})`">
       <rect x="1" y="1" :width="sect.width" :height="sect.height" class="sector-box"></rect>
       <g v-for="item in sect.children" :key="item.code" :transform="`translate(${item.x0}, ${item.y0})`">
-        <rect x="0" y="0" :width="item.width" :height="item.height" class="stock-box"
-              :style="{fill: item.color}"></rect>
+        <rect x="0" y="0" :width="item.width" :height="item.height"
+              class="stock-box"
+              :style="{fill: item.color}" :data-stock-code="item.code"></rect>
         <text :x="item.width/2" :y="item.height/2 - (item.showChange ? item.fontSize/2 : 0)"
               class="stock-title-text"
-              :style="{fontSize:item.fontSize+'px'}">
-          <tspan v-if="item.showName">{{item.name}}</tspan>
-          <tspan v-if="item.showChange" :x="item.width/2" :dy="item.fontSize + 5">{{item.change >= 0 ? '+' : ''}}
-            {{item.change}}%
+              :style="stockTitleStyle(item)">
+          <tspan v-if="item.showName" :data-stock-code="item.code">{{item.name}}</tspan>
+          <tspan v-if="item.showChange" :data-stock-code="item.code" :x="item.width/2" :dy="item.fontSize + 5">
+            {{(item.change >= 0 ? '+' : '') +
+            item.change}}%
           </tspan>
         </text>
       </g>
@@ -37,8 +39,7 @@ export default {
       sectorData: [],
       chartData: [],
       screenWidth: 0,
-      screenHeight: 0,
-      showModal: false
+      screenHeight: 0
     }
   },
   computed: {
@@ -58,10 +59,14 @@ export default {
       const textHeight = item.fontSize * 2 + 10
       return textWidth < item.width && textHeight < item.height
     },
+
     showChange (item) {
-      const textWidth = (item.change + '').length * item.fontSize + 5
-      const textHeight = item.fontSize * 2 + 10
+      const textWidth = (item.change + '').length - 1 * item.fontSize
+      const textHeight = item.fontSize * 2 + 20
       return textWidth < item.width && textHeight < item.height
+    },
+    stockTitleStyle (item) {
+      return { fontSize: item.fontSize + 'px' }
     },
     async fetchData () {
       let result = await this.$http.get('https://mondrianlab.com/api/index/kospi200/treeModel')
@@ -69,14 +74,16 @@ export default {
       result.forEach(d => {
         d.value = d.values.map(el => el.value).reduce((a, b) => a + b)
       })
-      result.sort((a, b) => b.value - a.value)
-      return result
+      return result.sort((a, b) => b.value - a.value)
     },
-    onMouseOver (e) {
-      this.showModal = true
+    onMouseMove (e) {
+      const element = document.elementFromPoint(e.x, e.y)
+      const stockCode = element.getAttribute('data-stock-code') || element.dataset.stockCode
+      console.log('move', stockCode, e.x, e.y)
+      this.mutate({ name: 'mouse', value: { left: e.x, top: e.y + 10, stockCode: stockCode } })
     },
     onMouseOut (e) {
-      this.showModal = false
+      this.mutate({ name: 'mouse', value: { left: e.x, top: e.y + 10, stockCode: null } })
     }
   },
   async mounted () {
@@ -105,10 +112,11 @@ export default {
         this.d3.mean(allChild, e => e.x1 - e.x0 + e.y1 - e.y0),
         this.d3.max(allChild, e => e.x1 - e.x0 + e.y1 - e.y0)
       ])
-      .range([8, 22, 40])
+      .range([8, 16, 40])
+
     const colorScale = this.d3.scaleLinear()
-      .domain([-3, -2, -1, 0, 1, 2, 3])
-      .range(['#F63538', '#BF4045', '#8B444E', '#414554', '#35764E', '#2F9E4F', '#30CC5A'])
+      .domain(this.steps.map(e => e.v))
+      .range(this.steps.map(e => e.c))
 
     const vm = this
     allChild.forEach(function (e) {
@@ -126,11 +134,9 @@ export default {
     })
 
     setTimeout(() => {
-      document.querySelectorAll('rect.stock-box')
-        .forEach(el => {
-          // el.addEventListener('mouseover', this.onMouseOver)
-          // el.addEventListener('mouseout', this.onMouseOut)
-        })
+      const el = document.querySelector('svg')
+      el.addEventListener('mousemove', this.onMouseMove)
+      el.addEventListener('mouseleave', this.onMouseOut)
     }, 1000)
   }
 }
@@ -152,7 +158,11 @@ export default {
   }
 
   .stock-title-text tspan:hover {
-    font-size: 120%
+    font-size: 120% !important;
+  }
+
+  .stock-title-text tspan:nth-child(2) {
+    font-size: 90%
   }
 
   .sector-box {
@@ -187,7 +197,7 @@ export default {
 
   .stock-box:hover {
     opacity: 0.9;
-    fill: #ec008c;
+    fill: #ec008c !important;
   }
 
   /* Non IE style */

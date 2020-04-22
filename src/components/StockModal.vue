@@ -1,6 +1,6 @@
 <template>
   <!-- The Modal -->
-  <div v-show="showModal" id="myModal" class="modal">
+  <div v-show="false" id="myModal" class="modal" :style="modalStyle">
     <!-- Modal content -->
     <div class="modal-content">
       <span class="close">&times;</span>
@@ -11,7 +11,12 @@
 
 <script>
 export default {
-  name: 'StockModal'
+  name: 'StockModal',
+  computed: {
+    modalStyle () {
+      return { left: `${this.mouse.left}px`, top: `${this.mouse.top}px` }
+    }
+  }
 }
 </script>
 
@@ -22,8 +27,6 @@ export default {
     /*display: none; !* Hidden by default *!*/
     position: fixed; /* Stay in place */
     z-index: 1; /* Sit on top */
-    left: 0;
-    top: 0;
     width: 240px; /* Full width */
     height: 200%; /* Full height */
     overflow: auto; /* Enable scroll if needed */
