@@ -1,22 +1,26 @@
 <template>
   <div id="app">
-    <d3-v4></d3-v4>
+    <stock-screen></stock-screen>
+    <app-footer></app-footer>
+    <stock-modal></stock-modal>
   </div>
 </template>
 
 <script>
-import D3V4 from './components/D3V4'
+import AppFooter from './components/AppFooter'
+import StockModal from './components/StockModal'
+import StockScreen from './components/StockScreen'
+
 export default {
   name: 'App',
   components: {
-    D3V4
+    StockScreen, StockModal, AppFooter
   }
 }
 </script>
 
 <style>
   @import "assets/app.css";
-  @import "assets/modal.css";
   @import url('https://fonts.googleapis.com/css?family=Montserrat:400,700');
   @import url('https://fonts.googleapis.com/css?family=Lato:400,700,900');
   #app {
@@ -30,5 +34,7 @@ export default {
     min-height: 768px;
     width: 100%;
     height: 100%;
+    display: flex;
+    flex-direction: column;
   }
 </style>
