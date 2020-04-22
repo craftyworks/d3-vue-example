@@ -5,46 +5,9 @@ body, html {
     margin: 0;
 }
 
-.rank-a, .rank-b, .rank-c, .rank-d, .rank-e, .rank-f, .rank-g {
-    stroke: #262931;
-    stroke-width: 1px;
-    transition: 0.3s;
-}
-
-.rank-a:hover, .rank-b:hover, .rank-c:hover, .rank-d:hover, .rank-e:hover, .rank-f:hover, .rank-g:hover {
-    opacity: 0.9;
-    fill: #ec008c;
-}
 
 .shadow {
     -webkit-filter: drop-shadow( 3px 3px 2px rgba(0, 0, 0, .7));
     filter: drop-shadow( 3px 3px 2px rgba(0, 0, 0, .7));
 }
 
-.rank-g {
-    fill: rgb(246, 53, 56);
-}
-
-.rank-f {
-    fill: rgb(191, 64, 69);
-}
-
-.rank-e {
-    fill: rgb(139, 68, 78);
-}
-
-.rank-d {
-    fill: rgb(65, 69, 84);
-}
-
-.rank-c {
-    fill: rgb(53, 118, 78);
-}
-
-.rank-b {
-    fill: rgb(47, 158, 79);
-}
-
-.rank-a {
-    fill: rgb(48, 204, 90);
-}
