@@ -7,29 +7,33 @@
     <!-- Modal content -->
     <div class="modal-content" ref="stockModal" :style="{background: stockInfo.color}">
       <div class="stock-name">
-        <h2>{{stockInfo.name}}</h2>
-        <h4>{{stockInfo.code}}</h4>
+        <h3 :style="stockNameStyle">{{stockInfo.name}}</h3>
+        <h5>{{stockInfo.code}}</h5>
+        <img src="@/assets/img/sparkline.png" width="90px" height="24px"
+             style="left: 60px; top: 53px; position:absolute; width:90px; height:24px; background-color: transparent">
       </div>
       <div class="stock-price">
-        <h2>{{formatNumber(stockInfo.price)}}</h2>
+        <h3>{{formatNumber(stockInfo.price)}}</h3>
       </div>
       <div class="stock-change">
-        <h2>
+        <h3>
           {{(stockInfo.change >= 0 ? '+' : '') + formatFloat(stockInfo.change)}}%
-        </h2>
+        </h3>
       </div>
     </div>
-    <div v-for="item in stockInfo.friends" :key="item.code" class="modal-friends">
-      <div class="stock-name">
-        <h4>{{item.name}}</h4>
-      </div>
-      <div class="stock-price">
-        <h5>{{formatNumber(item.price)}}</h5>
-      </div>
-      <div class="stock-change">
-        <h5 :style="{color: item.color}">
-          {{(item.change >= 0 ? '+' : '') + formatFloat(item.change)}}%
-        </h5>
+    <div class="modal-body">
+      <div v-for="item in stockInfo.friends" :key="item.code" class="modal-friends">
+        <div class="stock-name">
+          <p>{{item.name}}</p>
+        </div>
+        <div class="stock-price">
+          <p>{{formatNumber(item.price)}}</p>
+        </div>
+        <div class="stock-change">
+          <p :style="{color: item.color}">
+            {{(item.change >= 0 ? '+' : '') + formatFloat(item.change)}}%
+          </p>
+        </div>
       </div>
     </div>
   </div>
@@ -46,29 +50,22 @@ export default {
   },
   computed: {
     modalStyle () {
-      const mw = 400
-      let left = this.mouse.left + 100
+      const mw = 300
+      let left = this.mouse.left + 50
       if (left > this.window.width - mw - 20) {
-        left = this.mouse.left - mw - 100
+        left = this.mouse.left - mw - 50
       }
 
       let top = this.mouse.top
       const mh = (this.$refs && this.$refs.stockModel) ? this.$refs.stockModal.clientHeight : 200
 
-      if (top > this.window.height - mh - 50) {
-        top = this.window.height - mh - 50
+      if (top > this.window.height - mh - 70) {
+        top = this.window.height - mh - 70
       }
-      return { left: `${left}px`, top: `${top}px`, border: '1px solid black' }
-    }
-  },
-  methods: {
-    formatNumber (num) {
-      const fn = this.d3.format(',')
-      return fn(num)
+      return { left: `${left}px`, top: `${top}px` }
     },
-    formatFloat (num) {
-      const fn = this.d3.format(',.2f')
-      return fn(num)
+    stockNameStyle () {
+      return this.stockInfo.name.length > 6 ? { fontSize: '16px', margin: '7px 5px' } : {}
     }
   }
 }
@@ -81,7 +78,7 @@ export default {
     /*display: none; !* Hidden by default *!*/
     position: fixed; /* Stay in place */
     z-index: 1; /* Sit on top */
-    width: 400px; /* Full width */
+    width: 300px; /* Full width */
     /*height: 400px; !* Full height *!*/
     /*overflow: auto; !* Enable scroll if needed *!*/
     /*background-color: rgb(0,0,0); !* Fallback color *!*/
@@ -104,23 +101,36 @@ export default {
 
   .modal-content {
     color: white;
-    /*margin: 15% auto; !* 15% from the top and centered *!*/
     padding: 0px;
     border: 2px solid #262931;
     display: flex;
     text-shadow: 1px 1px 2px #262931;
   }
 
-  .stock-name > h2, .stock-name > h4 {
-    margin: 5px 10px;
+  .modal-body {
+    border-width: 0px 2px 2px;
+    border-style: solid;
+    border-color: #262931;
+  }
+
+  .stock-name > h3, .stock-name > h5, .stock-price > h3, .stock-change > h3 {
+    margin: 5px 5px;
+  }
+
+  .stock-name > h3, .stock-name > h5 {
+    text-align: left;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
-  .stock-name > h4 {
-    text-align: left;
-    padding-left: 10px;
+  .stock-name > h3 {
+    font-size: 20px;
+  }
+
+  .stock-name > h5 {
+    font-size: 12px;
+    padding: 0px 5px;
   }
 
   .stock-price {
@@ -133,7 +143,10 @@ export default {
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    margin: 0px 10px;
+  }
+
+  .stock-price > h3, .stock-change > h3 {
+    font-size: 18px;
   }
 
   .modal-friends {
@@ -144,12 +157,10 @@ export default {
     display: flex;
   }
 
-  .modal-friends h4 {
+  .modal-friends p {
     margin: 5px 5px;
-  }
-
-  .modal-friends h5 {
-    margin: 5px 5px;
+    font-size: 12px;
+    font-weight: 700;
   }
 
   .modal-friends > .stock-change {

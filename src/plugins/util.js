@@ -1,3 +1,5 @@
+import { format } from 'd3'
+
 export default {
   install (Vue) {
     const mixin = {
@@ -33,6 +35,10 @@ export default {
           // return this.steps_red_blue.filter(e => e.v !== 0.1 && e.v !== -0.1).reverse()
           return this.steps.filter(e => e.v < 5 && e.v > -5).reverse()
         }
+      },
+      methods: {
+        formatNumber: format(','),
+        formatFloat: format(',.2f')
       }
     }
     Vue.mixin(mixin)

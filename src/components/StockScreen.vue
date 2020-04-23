@@ -38,7 +38,7 @@ import squarify from 'squarify'
 import StockModal from './StockModal'
 
 export default {
-  name: 'D3V4',
+  name: 'StockScreen',
   components: { StockModal },
   data () {
     return {
@@ -80,6 +80,7 @@ export default {
     },
     async fetchData () {
       let result = await this.$http.get('https://mondrianlab.com/api/index/kospi200/treeModel')
+      // let result = await this.$http.get('http://localhost:10080/api/index/kospi200/treeModel')
       result = this.d3.nest().key(d => d.sector).entries(result.data)
       result.forEach(d => {
         d.value = d.values.map(el => el.value).reduce((a, b) => a + b)
