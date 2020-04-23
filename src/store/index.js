@@ -1,13 +1,12 @@
 import Vue from 'vue'
-import Vuex from 'vuex'
+import Vuex, { mapMutations, mapState } from 'vuex'
 
 Vue.use(Vuex)
 
 const store = new Vuex.Store({
   state: {
     mobileDevice: false,
-    showModal: false,
-    mouse: { left: 100, top: 100, stockCode: null }
+    window: { width: 0, height: 0 }
   },
   mutations: {
     mutate: (store, payload) => {
@@ -15,5 +14,11 @@ const store = new Vuex.Store({
     }
   }
 })
+
+const mixin = {
+  computed: mapState(['window', 'mobileDevice']),
+  methods: mapMutations(['mutate'])
+}
+Vue.mixin(mixin)
 
 export default store
