@@ -1,45 +1,51 @@
 <template>
-  <svg style="flex: 1">
-    <defs>
-      <filter id="shadow">
-        <feDropShadow dx="0.2" dy="0.4" stdDeviation="0.8"/>
-      </filter>
-    </defs>
-    <g v-for="sect in sectorData" :key="sect.key" :transform="`translate(${sect.x0}, ${sect.y0})`">
-      <rect x="1" y="1" :width="sect.width" :height="sect.height" class="sector-box"></rect>
-      <g v-for="item in sect.children" :key="item.code" :transform="`translate(${item.x0}, ${item.y0})`">
-        <rect x="0" y="0" :width="item.width" :height="item.height"
-              class="stock-box"
-              :style="{fill: item.color}" :data-stock-code="item.code"></rect>
-        <text :x="item.width/2" :y="item.height/2 - (item.showChange ? item.fontSize/2 : 0)"
-              class="stock-title-text"
-              :style="stockTitleStyle(item)">
-          <tspan v-if="item.showName" :data-stock-code="item.code">{{item.name}}</tspan>
-          <tspan v-if="item.showChange" :data-stock-code="item.code" :x="item.width/2" :dy="item.fontSize + 5">
-            {{(item.change >= 0 ? '+' : '') +
-            item.change}}%
-          </tspan>
-        </text>
+  <div style="flex: auto">
+    <svg style="flex: 1">
+      <defs>
+        <filter id="shadow">
+          <feDropShadow dx="0.2" dy="0.4" stdDeviation="1.5"/>
+        </filter>
+      </defs>
+      <g v-for="sect in sectorData" :key="sect.key" :transform="`translate(${sect.x0}, ${sect.y0})`">
+        <rect x="1" y="1" :width="sect.width" :height="sect.height" class="sector-box"></rect>
+        <g v-for="item in sect.children" :key="item.code" :transform="`translate(${item.x0}, ${item.y0})`">
+          <rect x="0" y="0" :width="item.width" :height="item.height"
+                class="stock-box"
+                :class="{active: item.code === mouse.stockCode}"
+                :style="{fill: item.color}" :data-stock-code="item.code"></rect>
+          <text :x="item.width/2" :y="item.height/2 - (item.showChange ? item.fontSize/2 : 0)"
+                class="stock-title-text"
+                :class="{active: item.code === mouse.stockCode}"
+                :style="{ fontSize: item.fontSize + 'px' }">
+            <tspan v-if="item.showName" :data-stock-code="item.code">{{item.name}}</tspan>
+            <tspan v-if="item.showChange" :data-stock-code="item.code" :x="item.width/2" :dy="item.fontSize + 5">
+              {{(item.change >= 0 ? '+' : '') + item.change}}%
+            </tspan>
+          </text>
+        </g>
+        <polygon :points="`1,1 ${sect.width+1},1 ${sect.width+1},20 20,20 15,25 10,20, 1,20`" class="sector-box-title"
+                 :style="{fill: sect.children[0].color}"></polygon>
+        <line :x1="sect.width" :y1="1" :x2="sect.width" y2="20" class="sector-box-title-right"></line>
+        <text :x="sect.width/2" :y="14" dy="0" class="sector-box-title-text">{{sect.key}}</text>
       </g>
-      <polygon :points="`1,1 ${sect.width+1},1 ${sect.width+1},20 20,20 15,25 10,20, 1,20`" class="sector-box-title"
-               :style="{fill: sect.children[0].color}"></polygon>
-      <line :x1="sect.width" :y1="1" :x2="sect.width" y2="20" class="sector-box-title-right"></line>
-      <text :x="sect.width/2" :y="14" dy="0" class="sector-box-title-text">{{sect.key}}</text>
-    </g>
-  </svg>
+    </svg>
+    <stock-modal :mouse="mouse" :stock-info="stockInfo"></stock-modal>
+  </div>
 </template>
 
 <script>
 import squarify from 'squarify'
+import StockModal from './StockModal'
 
 export default {
   name: 'D3V4',
+  components: { StockModal },
   data () {
     return {
       sectorData: [],
-      chartData: [],
       screenWidth: 0,
-      screenHeight: 0
+      screenHeight: 0,
+      mouse: { left: 0, top: 0, stockCode: null }
     }
   },
   computed: {
@@ -51,6 +57,13 @@ export default {
         x1: this.screenWidth - margin,
         y1: this.screenHeight - margin
       }
+    },
+    stockInfo () {
+      const stockInfo = this.sectorData.flatMap(e => e.children).filter(e => e.code === this.mouse.stockCode)[0]
+      if (stockInfo) {
+        stockInfo.friends = this.sectorData.filter(e => e.key === stockInfo.sector)[0].children.filter(e => e.code !== stockInfo.code).slice(0, 5)
+      }
+      return stockInfo || { }
     }
   },
   methods: {
@@ -65,9 +78,6 @@ export default {
       const textHeight = item.fontSize * 2 + 20
       return textWidth < item.width && textHeight < item.height
     },
-    stockTitleStyle (item) {
-      return { fontSize: item.fontSize + 'px' }
-    },
     async fetchData () {
       let result = await this.$http.get('https://mondrianlab.com/api/index/kospi200/treeModel')
       result = this.d3.nest().key(d => d.sector).entries(result.data)
@@ -79,10 +89,10 @@ export default {
     onMouseMove (e) {
       const element = document.elementFromPoint(e.x, e.y)
       const stockCode = element.getAttribute('data-stock-code') || element.dataset.stockCode
-      console.log('move', stockCode, e.x, e.y)
-      this.mutate({ name: 'mouse', value: { left: e.x, top: e.y + 10, stockCode: stockCode } })
+      this.mouse = { left: e.x, top: e.y + 10, stockCode: stockCode }
     },
     onMouseOut (e) {
+      console.log('onMoutOut')
       this.mutate({ name: 'mouse', value: { left: e.x, top: e.y + 10, stockCode: null } })
     }
   },
@@ -96,12 +106,7 @@ export default {
     this.sectorData.forEach(d => {
       d.width = d.x1 - d.x0
       d.height = d.y1 - d.y0
-      d.children = squarify(d.values, {
-        x0: 1,
-        y0: 20,
-        x1: d.x1 - d.x0,
-        y1: d.y1 - d.y0
-      })
+      d.children = squarify(d.values, { x0: 1, y0: 20, x1: d.x1 - d.x0, y1: d.y1 - d.y0 })
       delete d.values
     })
 
@@ -133,6 +138,8 @@ export default {
       }
     })
 
+    console.log(this.sectorData)
+
     setTimeout(() => {
       const el = document.querySelector('svg')
       el.addEventListener('mousemove', this.onMouseMove)
@@ -157,7 +164,7 @@ export default {
     transition: 0.3s;
   }
 
-  .stock-title-text tspan:hover {
+  .stock-title-text.active tspan:nth-child(1) {
     font-size: 120% !important;
   }
 
@@ -195,9 +202,9 @@ export default {
     transition: 0.3s;
   }
 
-  .stock-box:hover {
+  .stock-box.active {
     opacity: 0.9;
-    fill: #ec008c !important;
+    /*fill: #3366FF !important;*/
   }
 
   /* Non IE style */
