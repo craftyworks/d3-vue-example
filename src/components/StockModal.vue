@@ -9,8 +9,8 @@
       <div class="stock-name">
         <h3 :style="stockNameStyle">{{stockInfo.name}}</h3>
         <h5>{{stockInfo.code}}</h5>
-        <img src="@/assets/img/sparkline.png" width="90px" height="24px"
-             style="left: 60px; top: 53px; position:absolute; width:90px; height:24px; background-color: transparent">
+        <spark-line :width="85" :height="20" color="white" style="left: 60px; top: 53px; position:absolute;"
+                    :data="stockInfo.timeline"></spark-line>
       </div>
       <div class="stock-price">
         <h3>{{formatNumber(stockInfo.price)}}</h3>
@@ -26,6 +26,7 @@
         <div class="stock-name">
           <p>{{item.name}}</p>
         </div>
+        <spark-line :width="80" :height="20" color="#414554" stroke-width="1" :data="item.timeline"></spark-line>
         <div class="stock-price">
           <p>{{formatNumber(item.price)}}</p>
         </div>
@@ -40,8 +41,11 @@
 </template>
 
 <script>
+import SparkLine from './SparkLine'
+
 export default {
   name: 'StockModal',
+  components: { SparkLine },
   props: {
     mouse: {
       default: { left: 0, top: 0, stockCode: null }
@@ -65,7 +69,16 @@ export default {
       return { left: `${left}px`, top: `${top}px` }
     },
     stockNameStyle () {
-      return this.stockInfo.name.length > 6 ? { fontSize: '16px', margin: '7px 5px' } : {}
+      return this.stockInfo.name && this.stockInfo.name.length > 6 ? { fontSize: '16px', margin: '7px 5px' } : {}
+    }
+  },
+  watch: {
+    stockInfo () {
+      console.log('stockInfo', this.stockInfo)
+      this.stockInfo.timeline = this.d3.range(20).map(d => Math.random() - 0.5)
+      this.stockInfo.friends && this.stockInfo.friends.forEach(el => {
+        el.timeline = this.d3.range(20).map(d => Math.random() - 0.5)
+      })
     }
   }
 }
@@ -163,7 +176,17 @@ export default {
     font-weight: 700;
   }
 
-  .modal-friends > .stock-change {
+  .modal-friends svg {
+    margin: 4px 0px 0px auto;
+  }
+
+  .modal-friends > .stock-price {
+    justify-content: flex-end;
+    margin-left: 0px;
     min-width: 60px;
+  }
+
+  .modal-friends > .stock-change {
+    min-width: 50px;
   }
 </style>
