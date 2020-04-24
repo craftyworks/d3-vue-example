@@ -1,18 +1,23 @@
 <template>
   <div id="app">
-    <stock-screen></stock-screen>
+    <component v-bind:is="screenObject"></component>
     <app-footer></app-footer>
   </div>
 </template>
 
 <script>
 import AppFooter from './components/AppFooter'
-import StockScreen from './components/StockScreen'
 
 export default {
   name: 'App',
   components: {
-    StockScreen, AppFooter
+    AppFooter
+  },
+  computed: {
+    screenObject () {
+      console.log('screenObject', this.window)
+      return () => this.window.width > 0 ? import('./components/StockScreen') : ''
+    }
   },
   methods: {
     onSize () {
@@ -21,6 +26,7 @@ export default {
     }
   },
   mounted () {
+    console.log('App mounted')
     window.addEventListener('resize', this._.debounce(this.onSize, 300))
     this.onSize()
   }
@@ -38,12 +44,13 @@ export default {
     -moz-osx-font-smoothing: grayscale;
     text-align: center;
     margin: 0;
-    overflow: hidden;
-    min-width: 1024px;
-    min-height: 768px;
-    width: 100%;
-    height: 100%;
+    /*overflow: hidden;*/
+    /*min-width: 1024px;*/
+    /*min-height: 700px;*/
+    /*width: 100%;*/
+    /*height: 100%;*/
     display: flex;
+    /*position: absolute;*/
     flex-direction: column;
   }
 </style>
