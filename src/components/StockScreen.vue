@@ -1,6 +1,6 @@
 <template>
   <div ref="screenDiv" style="flex: auto">
-    <svg style="flex: 1">
+    <svg ref="svg" style="flex: 1">
       <defs>
         <filter id="shadow">
           <feDropShadow dx="0.2" dy="0.4" stdDeviation="1.5"/>
@@ -23,23 +23,23 @@
             </tspan>
           </text>
         </g>
-        <polygon :points="`1,1 ${sect.width+1},1 ${sect.width+1},20 20,20 15,25 10,20, 1,20`" class="sector-box-title"
-                 :style="{fill: sect.children[0].color}"></polygon>
-        <line :x1="sect.width" :y1="1" :x2="sect.width" y2="20" class="sector-box-title-right"></line>
-        <text :x="sect.width/2" :y="14" dy="0" class="sector-box-title-text">{{sect.key}}</text>
+        <sector-title :sect="sect"></sector-title>
       </g>
     </svg>
     <stock-modal :mouse="mouse" :stock-info="stockInfo"></stock-modal>
+    <stock-screen-footer></stock-screen-footer>
   </div>
 </template>
 
 <script>
 import squarify from 'squarify'
 import StockModal from './StockModal'
+import SectorTitle from './SectorTitle'
+import StockScreenFooter from './StockScreenFooter'
 
 export default {
   name: 'StockScreen',
-  components: { StockModal },
+  components: { StockScreenFooter, SectorTitle, StockModal },
   data () {
     return {
       sectorData: [],
@@ -50,13 +50,7 @@ export default {
   },
   computed: {
     container () {
-      const margin = 10 * 2
-      return {
-        x0: 0,
-        y0: 0,
-        x1: this.screenWidth - margin,
-        y1: this.screenHeight - margin
-      }
+      return { x0: 0, y0: 0, x1: this.screenWidth, y1: this.screenHeight }
     },
     stockInfo () {
       const stockInfo = this.sectorData.flatMap(e => e.children).filter(e => e.code === this.mouse.stockCode)[0]
@@ -89,25 +83,33 @@ export default {
     },
     onMouseMove (e) {
       const element = document.elementFromPoint(e.x, e.y)
-      const stockCode = element.getAttribute('data-stock-code') || element.dataset.stockCode
-      this.mouse = { left: e.x, top: e.y + 10, stockCode: stockCode }
+      if (element) {
+        const stockCode = element.getAttribute('data-stock-code') || element.dataset.stockCode
+        this.mouse = { left: e.x, top: e.y + 10, stockCode: stockCode }
+      }
     },
     onMouseOut (e) {
-      this.mutate({ name: 'mouse', value: { left: e.x, top: e.y + 10, stockCode: null } })
+      this.mouse = { left: e.x, top: e.y + 10, stockCode: null }
     },
     initScreen () {
       console.log('init screen')
-      const width = Math.max(this.CONST.MIN_WIDTH, this.window.width)
-      const height = Math.max(this.CONST.MIN_HEIGHT, this.window.height) - 50
+      const minScreen = this.minimumScreen()
+      const width = Math.max(minScreen.width, this.window.width) - 20
+      const height = Math.max(minScreen.height, this.window.height) - 20
+
+      console.log('width: %s, height: %s', width, height)
 
       this.d3.select(this.$refs.screenDiv)
         .style('width', width + 'px')
         .style('height', height + 'px')
 
-      const svg = this.d3.select('svg').style('width', '100%').style('height', '100%').node()
-      console.log(svg)
+      const svg = this.d3.select('svg')
+        .style('width', (width - 20) + 'px')
+        .style('height', (height - 20 - 40) + 'px')
+        .node()
       this.screenWidth = parseFloat(svg.clientWidth || svg.parentNode.clientWidth)
       this.screenHeight = parseFloat(svg.clientHeight || svg.parentNode.clientHeight)
+      console.log('svg width: %s, height: %s', this.screenWidth, this.screenHeight)
     }
   },
   async mounted () {
@@ -116,16 +118,15 @@ export default {
     console.log('container', this.container)
 
     const kospi200 = await this.fetchData()
-    // FIXME
-    this.sectorData = squarify(kospi200, this.container).filter(d => d.y1 - d.y0 > 20)
+    this.sectorData = squarify(kospi200, this.container)
     this.sectorData
       .forEach(d => {
         d.width = d.x1 - d.x0
         d.height = d.y1 - d.y0
-        d.children = squarify(d.values, { x0: 1, y0: 20, x1: d.width, y1: d.height })
+        // Sector Box 의 높이가 40px 이 안되면 Sector Title 표시를 생략한다.
+        d.children = squarify(d.values, { x0: 1, y0: (d.height > 40 ? 20 : 0), x1: d.width, y1: d.height })
         delete d.values
       })
-    console.log('sector', this.sectorData)
     const allChild = this.sectorData.flatMap(e => e.children)
     const fontScale = this.d3.scaleLinear()
       .domain([
@@ -143,9 +144,6 @@ export default {
     allChild.forEach(function (e) {
       e.width = e.x1 - e.x0
       e.height = e.y1 - e.y0
-      if (e.height < 0) {
-        console.log('>>>>>>>>>>', e)
-      }
       e.color = colorScale(e.change)
       e.fontSize = fontScale(e.width + e.height)
       e.showName = vm.showName(e)
@@ -168,9 +166,9 @@ export default {
 
 <style scoped>
   svg {
-    width: 800px;
-    height: 600px;
-    margin: 10px 10px 0px 10px;
+    width: 100%;
+    height: 100%;
+    margin: 10px 10px 10px 10px;
   }
 
   .stock-title-text tspan {
@@ -195,24 +193,6 @@ export default {
     stroke-width: 2px;
   }
 
-  .sector-box-title {
-    stroke: #262931;
-    stroke-width: 2px;
-  }
-
-  .sector-box-title-right {
-    stroke: #262931;
-    stroke-width: 1px;
-  }
-
-  .sector-box-title-text {
-    fill: white;
-    font-weight: 700;
-    font-size: 12px;
-    text-anchor: middle;
-    /*dominant-baseline: hanging;*/
-  }
-
   .stock-box {
     stroke: #262931;
     stroke-width: 1px;
@@ -226,7 +206,7 @@ export default {
 
   /* Non IE style */
   @supports not (-ms-high-contrast: none) {
-    .stock-title-text, .sector-box-title-text {
+    .stock-title-text {
       filter: url(#shadow);
     }
   }

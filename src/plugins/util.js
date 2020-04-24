@@ -38,7 +38,10 @@ export default {
       },
       methods: {
         formatNumber: format(','),
-        formatFloat: format(',.2f')
+        formatFloat: format(',.2f'),
+        minimumScreen () {
+          return this.mobileDevice ? this.CONST.MIN_MOBILE_SCREEN : this.CONST.MIN_PC_SCREEN
+        }
       }
     }
     Vue.mixin(mixin)

@@ -3,7 +3,7 @@ module.exports = {
     config
       .plugin('html')
       .tap(args => {
-        args[0].title = 'KOSPI 200'
+        args[0].title = '몬드리안 연구소'
         return args
       })
   },

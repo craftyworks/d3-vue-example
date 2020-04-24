@@ -1,22 +1,18 @@
 <template>
   <div id="app">
     <component v-bind:is="screenObject"></component>
-    <app-footer></app-footer>
   </div>
 </template>
 
 <script>
-import AppFooter from './components/AppFooter'
 
 export default {
   name: 'App',
   components: {
-    AppFooter
   },
   computed: {
     screenObject () {
-      console.log('screenObject', this.window)
-      return () => this.window.width > 0 ? import('./components/StockScreen') : ''
+      return () => window.innerWidth > 0 ? import('./components/StockScreen') : ''
     }
   },
   methods: {

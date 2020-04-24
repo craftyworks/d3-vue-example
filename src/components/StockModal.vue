@@ -2,6 +2,7 @@
   <!-- The Modal -->
   <div v-show="mouse.stockCode" class="modal" :style="modalStyle">
     <div class="modal-header">
+      <span v-if="mobileDevice" class="close" @click="closeModal">&times;</span>
       <p>{{stockInfo.sector}}</p>
     </div>
     <!-- Modal content -->
@@ -52,29 +53,49 @@ export default {
     },
     stockInfo: {}
   },
+  data () {
+    return {
+    }
+  },
   computed: {
     modalStyle () {
+      const position = this.getPosition()
+      return { left: `${position.left}px`, top: `${position.top}px` }
+    },
+    stockNameStyle () {
+      return this.stockInfo.name && this.stockInfo.name.length > 6 ? { fontSize: '16px', margin: '7px 5px' } : {}
+    }
+  },
+  methods: {
+    closeModal () {
+    },
+    getPosition () {
       const mw = 300
+      const mh = (this.$refs && this.$refs.stockModel) ? this.$refs.stockModal.clientHeight : 200
+
       let left = this.mouse.left + 50
       if (left > this.window.width - mw - 20) {
         left = this.mouse.left - mw - 50
       }
 
       let top = this.mouse.top
-      const mh = (this.$refs && this.$refs.stockModel) ? this.$refs.stockModal.clientHeight : 200
-
       if (top > this.window.height - mh - 70) {
         top = this.window.height - mh - 70
       }
-      return { left: `${left}px`, top: `${top}px` }
-    },
-    stockNameStyle () {
-      return this.stockInfo.name && this.stockInfo.name.length > 6 ? { fontSize: '16px', margin: '7px 5px' } : {}
+
+      // 모바일에선 센터에 표시
+      if (this.mobileDevice) {
+        left = (this.window.width - mw) / 2
+        top = (this.window.height - mh) / 2
+        if (this.mouse.top > top && this.mouse.top < top + mh) {
+          top += mh
+        }
+      }
+      return { left, top }
     }
   },
   watch: {
     stockInfo () {
-      console.log('stockInfo', this.stockInfo)
       this.stockInfo.timeline = this.d3.range(20).map(d => Math.random() - 0.5)
       this.stockInfo.friends && this.stockInfo.friends.forEach(el => {
         el.timeline = this.d3.range(20).map(d => Math.random() - 0.5)
@@ -188,5 +209,19 @@ export default {
 
   .modal-friends > .stock-change {
     min-width: 50px;
+  }
+
+  .close {
+    font-weight: 700;
+    font-size: 14px;
+    padding: 0px 5px;
+    float: right;
+  }
+
+  .close:hover,
+  .close:focus {
+    color: #30CC5A;
+    text-decoration: none;
+    cursor: pointer;
   }
 </style>
