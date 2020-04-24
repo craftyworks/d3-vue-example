@@ -1,5 +1,5 @@
 <template>
-  <div style="flex: auto">
+  <div ref="screenDiv" style="flex: auto">
     <svg style="flex: 1">
       <defs>
         <filter id="shadow">
@@ -63,7 +63,7 @@ export default {
       if (stockInfo) {
         stockInfo.friends = this.sectorData.filter(e => e.key === stockInfo.sector)[0].children.filter(e => e.code !== stockInfo.code).slice(0, 5)
       }
-      return stockInfo || { }
+      return stockInfo || {}
     }
   },
   methods: {
@@ -93,24 +93,39 @@ export default {
       this.mouse = { left: e.x, top: e.y + 10, stockCode: stockCode }
     },
     onMouseOut (e) {
-      console.log('onMoutOut')
       this.mutate({ name: 'mouse', value: { left: e.x, top: e.y + 10, stockCode: null } })
+    },
+    initScreen () {
+      console.log('init screen')
+      const width = Math.max(this.CONST.MIN_WIDTH, this.window.width)
+      const height = Math.max(this.CONST.MIN_HEIGHT, this.window.height) - 50
+
+      this.d3.select(this.$refs.screenDiv)
+        .style('width', width + 'px')
+        .style('height', height + 'px')
+
+      const svg = this.d3.select('svg').style('width', '100%').style('height', '100%').node()
+      console.log(svg)
+      this.screenWidth = parseFloat(svg.clientWidth || svg.parentNode.clientWidth)
+      this.screenHeight = parseFloat(svg.clientHeight || svg.parentNode.clientHeight)
     }
   },
   async mounted () {
-    const svg = this.d3.select('svg').style('width', '100%').node()
-    this.screenWidth = parseFloat(svg.clientWidth || svg.parentNode.clientWidth)
-    this.screenHeight = parseFloat(svg.clientHeight || svg.parentNode.clientHeight)
+    this.initScreen()
+
+    console.log('container', this.container)
 
     const kospi200 = await this.fetchData()
-    this.sectorData = squarify(kospi200, this.container)
-    this.sectorData.forEach(d => {
-      d.width = d.x1 - d.x0
-      d.height = d.y1 - d.y0
-      d.children = squarify(d.values, { x0: 1, y0: 20, x1: d.x1 - d.x0, y1: d.y1 - d.y0 })
-      delete d.values
-    })
-
+    // FIXME
+    this.sectorData = squarify(kospi200, this.container).filter(d => d.y1 - d.y0 > 20)
+    this.sectorData
+      .forEach(d => {
+        d.width = d.x1 - d.x0
+        d.height = d.y1 - d.y0
+        d.children = squarify(d.values, { x0: 1, y0: 20, x1: d.width, y1: d.height })
+        delete d.values
+      })
+    console.log('sector', this.sectorData)
     const allChild = this.sectorData.flatMap(e => e.children)
     const fontScale = this.d3.scaleLinear()
       .domain([
@@ -128,6 +143,9 @@ export default {
     allChild.forEach(function (e) {
       e.width = e.x1 - e.x0
       e.height = e.y1 - e.y0
+      if (e.height < 0) {
+        console.log('>>>>>>>>>>', e)
+      }
       e.color = colorScale(e.change)
       e.fontSize = fontScale(e.width + e.height)
       e.showName = vm.showName(e)
@@ -138,8 +156,6 @@ export default {
         e.showChange = e.showName && vm.showChange(e)
       }
     })
-
-    console.log(this.sectorData)
 
     setTimeout(() => {
       const el = document.querySelector('svg')
@@ -152,8 +168,8 @@ export default {
 
 <style scoped>
   svg {
-    width: 100%;
-    height: 100%;
+    width: 800px;
+    height: 600px;
     margin: 10px 10px 0px 10px;
   }
 
